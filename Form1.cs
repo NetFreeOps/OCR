@@ -1,7 +1,6 @@
-using Microsoft.VisualBasic.FileIO;
+using Microsoft.VisualBasic;
 using PaddleOCRSharp;
-using System.Security.Cryptography;
-using System.Security.Cryptography.Xml;
+using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -19,7 +18,7 @@ namespace OCR
 
         }
 
-        Thread thread = null;
+        Thread drawThread = null;
 
 
         private OCRModelConfig _modelConfig;
@@ -43,12 +42,6 @@ namespace OCR
             _engine = new PaddleOCREngine(_modelConfig, _parameter);
 
 
-            //建议程序全局初始化一次即可，不必每次识别都初始化，容易报错。     
-            //  PaddleOCREngine engine = new PaddleOCREngine(config, oCRParameter);
-            // {
-            //     ocrResult = engine.DetectText(ofd.FileName);
-            // }
-            // if (ocrResult != null) MessageBox.Show(ocrResult.Text, "识别结果");
 
         }
         /// <summary>
@@ -67,19 +60,10 @@ namespace OCR
 
             resultEntry entry = new resultEntry();
 
-            entry = HandleImg(ofd.FileName);
+            List<string> resultList = HandleImg(ofd.FileName);
 
+            HandleResult(resultList);
 
-            resultEntries.Add(entry);
-
-            dataGridView1.DataSource = null;
-            dataGridView1.DataSource = resultEntries;
-
-
-            foreach (DataGridViewColumn item in dataGridView1.Columns)
-            {
-                item.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            }
 
         }
         /// <summary>
@@ -99,9 +83,27 @@ namespace OCR
             return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second;
         }
         /// <summary>
+        /// 批量处理
+        /// </summary>
+        public void handleImgBatch()
+        {
+            int len = listBox1.Items.Count;
+
+            for (int i = 0; i < len; i++)
+            {
+                List<string> resultList = HandleImg((string)listBox1.Items[i]);
+                HandleResult(resultList);
+                label4.Text = (i + 1).ToString() + "/" + len;
+                progressBar1.Value = i + 1;
+
+
+            }
+        }
+
+        /// <summary>
         /// 识别文件结果
         /// </summary>
-        public resultEntry HandleImg(string filePath)
+        public List<string> HandleImg(string filePath)
         {
 
             _result = _engine.DetectText(filePath);
@@ -197,7 +199,8 @@ namespace OCR
                 catch (Exception ex)
                 {
                     MessageBox.Show("在识别文件：" + filePath + "时发生错误");
-                    return entry;
+                    // return entry;
+                    return lines;
                 }
             }
             else
@@ -205,23 +208,26 @@ namespace OCR
                 MessageBox.Show("截图不完整");
             }
 
-            return entry;
-
+            // return entry;
+            return lines;
         }
 
         /// <summary>
         /// 结果填充到界面
         /// </summary>
         /// <param name="result"></param>
-        public void HandleResult(resultEntry result)
+        public void HandleResult(List<string> result)
         {
 
 
 
-            resultEntries.Add(result);
 
-            dataGridView1.DataSource = null;
-            dataGridView1.DataSource = resultEntries;
+            int indexs = dataGridView1.Rows.Add();
+
+            for (int i = 0; i < result.Count; i++)
+            {
+                dataGridView1.Rows[indexs].Cells[i].Value = result[i];
+            }
 
 
             foreach (DataGridViewColumn item in dataGridView1.Columns)
@@ -229,14 +235,17 @@ namespace OCR
                 item.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             }
         }
-
+        /// <summary>
+        /// 选择识别路径
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void button2_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
-
             if (fbd.ShowDialog() != DialogResult.OK) return;
             string path = fbd.SelectedPath;
-
+            textBox1.Text = path;
             // GetFileNameListFromFolder(path);
 
             DirectoryInfo dir = new DirectoryInfo(path);
@@ -270,7 +279,6 @@ namespace OCR
             foreach (FileInfo file in files)
             {
                 fileNameList.Add(file.FullName);
-                //fileNameList += file.FullName + ";";
             }
             return fileNameList;
         }
@@ -287,27 +295,23 @@ namespace OCR
         /// <param name="e"></param>
         private void button3_Click(object sender, EventArgs e)
         {
-           
 
-            List<string> strings = new List<string>();
-            int index = 1;
             int len = listBox1.Items.Count;
             progressBar1.Minimum = 0;
             progressBar1.Maximum = len;
 
+            //Thread t = new Thread(new ThreadStart(handleImgBatch));
 
+            drawThread = new Thread(new ThreadStart(handleImgBatch));
 
-            label4.Text = index.ToString() + "/" + len;
+            drawThread.IsBackground = true;
 
-            for (int i = 0; i < len; i++)
-            {
-                progressBar1.Value = i + 1;
-                label4.Text = (i + 1).ToString() + "/" + len;
-                strings.Add((string)listBox1.Items[i]);
-                resultEntry resultEntry = HandleImg((string)listBox1.Items[i]);
-                HandleResult(resultEntry);
+            drawThread.Start();
 
-            }
+        }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
 
         }
     }
