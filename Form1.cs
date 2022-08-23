@@ -1,6 +1,9 @@
+using Microsoft.VisualBasic.FileIO;
 using PaddleOCRSharp;
+using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace OCR
 {
@@ -10,17 +13,14 @@ namespace OCR
         {
             InitializeComponent();
 
-            //使用默认中英文V3模型
-            //  OCRModelConfig config = null;
-            //使用默认参数
-            // OCRParameter oCRParameter = new OCRParameter();
-            //识别结果对象
-            // OCRResult ocrResult = new OCRResult();
-            //PaddleOCREngine engine = new PaddleOCREngine(config, oCRParameter);
+            Control.CheckForIllegalCrossThreadCalls = false;
 
 
 
         }
+
+        Thread thread = null;
+
 
         private OCRModelConfig _modelConfig;
 
@@ -51,7 +51,11 @@ namespace OCR
             // if (ocrResult != null) MessageBox.Show(ocrResult.Text, "识别结果");
 
         }
-
+        /// <summary>
+        /// 单个识别
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void button1_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
@@ -77,8 +81,6 @@ namespace OCR
                 item.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             }
 
-            //textBox1.Text = result.ToString();
-            // MessageBox.Show(@string.ToString(), "识别结果");
         }
         /// <summary>
         /// 处理时间
@@ -111,6 +113,9 @@ namespace OCR
 
             });
 
+            bool isStart = false;
+
+
             List<string> lines = new List<string>();
 
 
@@ -122,20 +127,23 @@ namespace OCR
             //结果处理
             for (int i = 0; i < len; i++)
             {
-                if (_result.TextBlocks[i].Text == "核酸检测信息")
+
+                //获取查询时间、查询人
+                if (_result.TextBlocks[i].Text.Contains('月') && _result.TextBlocks[i].Text.Contains('日'))
                 {
-                    //result.AppendLine("查询时间：" + _result.TextBlocks[i + 1].Text);
-
-                    //result.AppendLine("查询人：" + _result.TextBlocks[i + 2].Text);
-                    //result.AppendLine("身份证号：" + _result.TextBlocks[i + 4].Text);
-
+                    lines.Add(_result.TextBlocks[i].Text);
                     lines.Add(_result.TextBlocks[i + 1].Text);
-                    lines.Add(_result.TextBlocks[i + 2].Text);
-                    lines.Add(_result.TextBlocks[i + 4].Text);
-
-
+                    isStart = true;
 
                 }
+                //获取查询身份证号
+                if (Regex.IsMatch(_result.TextBlocks[i].Text, @"(^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$)"))
+                {
+                    lines.Add(_result.TextBlocks[i].Text);
+                }
+
+
+
                 if (_result.TextBlocks[i].Text.Contains("检测时间："))
                 {
                     //获取第一个：的位置
@@ -145,6 +153,7 @@ namespace OCR
                     str = convertToDateTime(str);
                     //result.AppendLine("检测时间：" + str);
                     lines.Add(str);
+
 
                 }
                 if (_result.TextBlocks[i].Text.Contains("检测机构："))
@@ -167,46 +176,85 @@ namespace OCR
 
                 }
             }
-            //实体类赋值
-            entry.queryTime = lines[0];
-            entry.queryUser = lines[1];
-            entry.userIDcard = lines[2];
-            entry.checkTime1 = lines[3];
-            entry.chackLocation1 = lines[4];
-            entry.checkResult1 = lines[5];
-            entry.checkTime2 = lines[6];
-            entry.checkLocation2 = lines[7];
-            entry.checkResult2 = lines[8];
-            entry.checkTime3 = lines[9];
-            entry.checkLocation3 = lines[10];
-            entry.checkResult3 = lines[11];
-
+            if (isStart)
+            {
+                try
+                {
+                    //实体类赋值
+                    entry.queryTime = lines[0];
+                    entry.queryUser = lines[1];
+                    entry.userIDcard = lines[2];
+                    entry.checkTime1 = lines[3];
+                    entry.chackLocation1 = lines[4];
+                    entry.checkResult1 = lines[5];
+                    entry.checkTime2 = lines[6];
+                    entry.checkLocation2 = lines[7];
+                    entry.checkResult2 = lines[8];
+                    entry.checkTime3 = lines[9];
+                    entry.checkLocation3 = lines[10];
+                    entry.checkResult3 = lines[11];
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("在识别文件：" + filePath + "时发生错误");
+                    return entry;
+                }
+            }
+            else
+            {
+                MessageBox.Show("截图不完整");
+            }
 
             return entry;
 
-
         }
 
-        //打开文件夹
-        private void button2_Click(object sender, EventArgs e)
+        /// <summary>
+        /// 结果填充到界面
+        /// </summary>
+        /// <param name="result"></param>
+        public void HandleResult(resultEntry result)
         {
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
-            if (fbd.ShowDialog() != DialogResult.OK) return;
-            string path = fbd.SelectedPath;
-            DirectoryInfo dir = new DirectoryInfo(path);
-            FileInfo[] files = dir.GetFiles();
-            foreach (FileInfo file in files)
-            {
-                resultEntry entry = new resultEntry();
-                entry = HandleImg(file.FullName);
-                resultEntries.Add(entry);
-            }
+
+
+
+            resultEntries.Add(result);
+
             dataGridView1.DataSource = null;
             dataGridView1.DataSource = resultEntries;
+
+
             foreach (DataGridViewColumn item in dataGridView1.Columns)
             {
                 item.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+
+            if (fbd.ShowDialog() != DialogResult.OK) return;
+            string path = fbd.SelectedPath;
+
+            // GetFileNameListFromFolder(path);
+
+            DirectoryInfo dir = new DirectoryInfo(path);
+            FileInfo[] files = dir.GetFiles("*", System.IO.SearchOption.AllDirectories);
+
+            listBox1.Items.Clear();
+
+            foreach (FileInfo file in files)
+            {
+                if (Regex.IsMatch(file.Name, @"^.+\.(jpg|png|bmp|jpeg|tiff)$"))
+                {
+                    listBox1.Items.Add(file.FullName);
+
+                }
+
+            }
+
+
         }
 
         /// <summary>
@@ -215,12 +263,13 @@ namespace OCR
         public List<string> GetFileNameListFromFolder(string folderPath)
         {
 
+
             List<string> fileNameList = new List<string>();
             DirectoryInfo dir = new DirectoryInfo(folderPath);
-            FileInfo[] files = dir.GetFiles();
+            FileInfo[] files = dir.GetFiles("", System.IO.SearchOption.AllDirectories);
             foreach (FileInfo file in files)
             {
-                fileNameList.Add(file.Name);
+                fileNameList.Add(file.FullName);
                 //fileNameList += file.FullName + ";";
             }
             return fileNameList;
@@ -231,7 +280,35 @@ namespace OCR
         {
 
         }
+        /// <summary>
+        /// 调用图片识别函数
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button3_Click(object sender, EventArgs e)
+        {
+           
 
-     
+            List<string> strings = new List<string>();
+            int index = 1;
+            int len = listBox1.Items.Count;
+            progressBar1.Minimum = 0;
+            progressBar1.Maximum = len;
+
+
+
+            label4.Text = index.ToString() + "/" + len;
+
+            for (int i = 0; i < len; i++)
+            {
+                progressBar1.Value = i + 1;
+                label4.Text = (i + 1).ToString() + "/" + len;
+                strings.Add((string)listBox1.Items[i]);
+                resultEntry resultEntry = HandleImg((string)listBox1.Items[i]);
+                HandleResult(resultEntry);
+
+            }
+
+        }
     }
 }
