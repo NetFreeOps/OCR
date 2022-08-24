@@ -1,6 +1,8 @@
 using Microsoft.VisualBasic;
 using PaddleOCRSharp;
+using System.Data;
 using System.Drawing;
+using System.Security.AccessControl;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -31,16 +33,21 @@ namespace OCR
 
         private List<resultEntry> resultEntries = new List<resultEntry>();
 
+        /// <summary>
+        /// 选中的图片路径
+        /// </summary>
+        public string selectedPath = "";
+
         private void Form1_Load(object sender, EventArgs e)
         {
             _modelConfig = null;
 
             _parameter = new OCRParameter();
 
+
             _result = new OCRResult();
 
             _engine = new PaddleOCREngine(_modelConfig, _parameter);
-
 
 
         }
@@ -224,6 +231,11 @@ namespace OCR
 
             int indexs = dataGridView1.Rows.Add();
 
+            if (result.Count != 12)
+            {
+                return;
+            }
+
             for (int i = 0; i < result.Count; i++)
             {
                 dataGridView1.Rows[indexs].Cells[i].Value = result[i];
@@ -313,6 +325,88 @@ namespace OCR
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
 
+        }
+        /// <summary>
+        /// 导出EXCEL
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button4_Click(object sender, EventArgs e)
+        {
+
+            string path = System.Environment.CurrentDirectory + "/template.xlsx";
+
+
+
+            for (int i = 0; i < 10; i++)
+            {
+               
+            }
+
+            var value = new
+            {
+                resultList = new[] {
+        new {name="Jack",value="HR"},
+        new {name="Lisa",value="HR"},
+        new {name="John",value="HR"},
+        new {name="Mike",value="IT"},
+        new {name="Neo",value="IT"},
+        new {name="Loan",value="IT"}
+    }
+            };
+
+            
+
+            if (File.Exists(path))
+            {
+                // MessageBox.Show(path);
+                try
+                {
+                    SaveFileDialog saveFileDialog = new SaveFileDialog();
+                    // saveFileDialog.FileName = "xxx.xlsx";
+                    saveFileDialog.Filter = "Excel2007(*.xlsx)|*.xlsx";
+                    saveFileDialog.FileName = DateTime.Now.ToString("yyyymmddHHmmss") + ".xlsx";
+                    saveFileDialog.ShowDialog();
+
+                    MiniExcelLibs.MiniExcel.SaveAsByTemplate(saveFileDialog.FileName, path, value);
+
+                }
+                catch (Exception ex)
+                {
+
+                    MessageBox.Show(ex.ToString(), "出错了", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("模板不存在，无法导出数据");
+            }
+
+            //MiniExcelLibs.MiniExcel.SaveAsByTemplate(textBox2.Text,, value);
+
+        }
+        /// <summary>
+        /// 选择输出文件夹
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button5_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            if (fbd.ShowDialog() != DialogResult.OK) return;
+            string path = fbd.SelectedPath;
+            textBox2.Text = path;
+        }
+
+        private void listBox1_MouseClick(object sender, MouseEventArgs e)
+        {
+            selectedPath = listBox1.SelectedItem.ToString();
+
+            ImgShowDialog imgShow = new ImgShowDialog(selectedPath);
+            imgShow.Show();
+
+
+            //MessageBox.Show(selectedPath);
         }
     }
 }
