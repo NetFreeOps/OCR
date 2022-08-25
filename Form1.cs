@@ -87,7 +87,9 @@ namespace OCR
         /// <returns></returns>
         public static string convertToDateTime(string str)
         {
+            str = str.Replace(" ","");
             string[] strs = str.Split('.');
+
             string year = strs[0].Substring(0, 4);
             string month = strs[0].Substring(5, 2);
             string day = strs[0].Substring(8, 2);
