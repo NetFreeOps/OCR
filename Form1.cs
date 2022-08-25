@@ -40,7 +40,14 @@ namespace OCR
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            _modelConfig = null;
+            // _modelConfig = null;
+            _modelConfig = new OCRModelConfig ();
+            string root = System.IO.Path.GetDirectoryName(typeof(OCRModelConfig).Assembly.Location);
+            string modelPathroot = root + @"\server";
+            _modelConfig.det_infer = modelPathroot + @"\ch_PP-OCRv3_det_infer";
+            _modelConfig.cls_infer = modelPathroot + @"\ch_ppocr_mobile_v2.0_cls_infer";
+            _modelConfig.rec_infer = modelPathroot + @"\ch_PP-OCRv3_rec_infer";
+            _modelConfig.keys = modelPathroot + @"\ppocr_keys.txt";
 
             _parameter = new OCRParameter();
 
