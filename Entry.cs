@@ -8,6 +8,9 @@ namespace OCR
 {
     public class resultEntry
     {
+        public string name { get; set; }
+
+        public string value { get; set; }
         public string? queryTime { get; set; }
 
         public string? queryUser { get; set; }

@@ -67,7 +67,7 @@ namespace OCR
 
             resultEntry entry = new resultEntry();
 
-            List<string> resultList = HandleImg(ofd.FileName);
+            List<string> resultList = HandleImg(ofd.FileName,0);
 
             HandleResult(resultList);
 
@@ -110,7 +110,7 @@ namespace OCR
         /// <summary>
         /// 识别文件结果
         /// </summary>
-        public List<string> HandleImg(string filePath)
+        public List<string> HandleImg(string filePath,int? type = 1)
         {
 
             _result = _engine.DetectText(filePath);
@@ -132,6 +132,15 @@ namespace OCR
 
 
             int len = _result.TextBlocks.Count;
+
+            if (type == 0)
+            {
+                for (int i = 0; i < _result.TextBlocks.Count; i++)
+                {
+                    @string.AppendLine(_result.TextBlocks[i].ToString());
+                }
+                MessageBox.Show(@string.ToString());
+            }
 
             //结果处理
             for (int i = 0; i < len; i++)
@@ -336,25 +345,53 @@ namespace OCR
 
             string path = System.Environment.CurrentDirectory + "/template.xlsx";
 
+            List<resultEntry> resultEntries = new List<resultEntry>();
 
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < dataGridView1.RowCount; i++)
             {
-               
+                resultEntry result = new resultEntry();
+                result.queryTime = Convert.ToString( dataGridView1.Rows[i].Cells[0].Value);
+                result.queryUser = Convert.ToString( dataGridView1.Rows[i].Cells[1].Value);
+                result.userIDcard = Convert.ToString( dataGridView1.Rows[i].Cells[2].Value);
+                result.checkTime1 = Convert.ToString( dataGridView1.Rows[i].Cells[3].Value);
+                result.chackLocation1 = Convert.ToString( dataGridView1.Rows[i].Cells[4].Value);
+                result.checkResult1 = Convert.ToString( dataGridView1.Rows[i].Cells[5].Value);
+                result.checkTime2 = Convert.ToString( dataGridView1.Rows[i].Cells[6].Value);
+                result.checkLocation2 = Convert.ToString( dataGridView1.Rows[i].Cells[7].Value);
+                result.checkResult2 = Convert.ToString( dataGridView1.Rows[i].Cells[8].Value);
+                result.checkTime3 = Convert.ToString( dataGridView1.Rows[i].Cells[9].Value);
+                result.checkLocation3 = Convert.ToString( dataGridView1.Rows[i].Cells[10].Value);
+                result.checkResult3 = Convert.ToString( dataGridView1.Rows[i].Cells[11].Value);
+                resultEntries.Add(result);
             }
 
-            var value = new
-            {
-                resultList = new[] {
-        new {name="Jack",value="HR"},
-        new {name="Lisa",value="HR"},
-        new {name="John",value="HR"},
-        new {name="Mike",value="IT"},
-        new {name="Neo",value="IT"},
-        new {name="Loan",value="IT"}
-    }
-            };
 
+
+
+
+            //for (int i = 0; i < 10; i++)
+            //{
+            //    resultEntry result = new resultEntry();
+
+            //    result.name = i.ToString();
+            //    result.value = "xdddd";
+            //    resultEntries.Add(result);
+
+            //}
+
+
+
+
+
+            var value = new Dictionary<string, object>()
+            {
+                ["resultList"] = resultEntries
+            };
+           
+
+
+           
             
 
             if (File.Exists(path))
