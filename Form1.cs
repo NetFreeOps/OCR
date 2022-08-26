@@ -45,20 +45,47 @@ namespace OCR
         private void Form1_Load(object sender, EventArgs e)
         {
             // _modelConfig = null;
-            _modelConfig = new OCRModelConfig ();
-            string root = System.IO.Path.GetDirectoryName(typeof(OCRModelConfig).Assembly.Location);
-            string modelPathroot = root + @"\server";
-            _modelConfig.det_infer = modelPathroot + @"\ch_PP-OCRv3_det_infer";
-            _modelConfig.cls_infer = modelPathroot + @"\ch_ppocr_mobile_v2.0_cls_infer";
-            _modelConfig.rec_infer = modelPathroot + @"\ch_PP-OCRv3_rec_infer";
-            _modelConfig.keys = modelPathroot + @"\ppocr_keys.txt";
+            try
+            {
+                _modelConfig = new OCRModelConfig();
+                string root = System.IO.Path.GetDirectoryName(typeof(OCRModelConfig).Assembly.Location);
+                string modelPathroot = root + @"\server";
+                _modelConfig.det_infer = modelPathroot + @"\ch_PP-OCRv3_det_infer";
+                _modelConfig.cls_infer = modelPathroot + @"\ch_ppocr_mobile_v2.0_cls_infer";
+                _modelConfig.rec_infer = modelPathroot + @"\ch_PP-OCRv3_rec_infer";
+                _modelConfig.keys = modelPathroot + @"\ppocr_keys.txt";
 
-            _parameter = new OCRParameter();
+
+                _parameter = new OCRParameter();
 
 
-            _result = new OCRResult();
 
-            _engine = new PaddleOCREngine(_modelConfig, _parameter);
+                _result = new OCRResult();
+
+                _engine = new PaddleOCREngine(_modelConfig, _parameter);
+
+                auth formauth = new auth();
+
+                //激活认证
+                if (formauth.authGUID())
+                {
+                    this.Text = "核酸检测结果识别及导出软件-状态：已激活";
+                }
+                else
+                {
+                    this.Text = "核酸检测结果识别及导出软软件-状态：未激活，禁止导出";
+                    button3.Enabled = false;
+                    button4.Enabled = false;
+                }
+
+            }
+            catch (Exception)
+            {
+
+                MessageBox.Show("模型加载失败，请检查模型是否存在");
+                
+            }
+           
 
             //listView2.Columns.Add("状态",100,HorizontalAlignment.Left);
             //listView2.Columns.Add("路径",300,HorizontalAlignment.Left);
@@ -113,7 +140,17 @@ namespace OCR
             {
                 currentIndex = i;
 
+                System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+
+                sw.Start();
                 List<string> resultList = HandleImg(listView2.Items[i].SubItems[1].Text);
+                sw.Stop();
+                TimeSpan timeSpan = sw.Elapsed;
+
+                double handleTime = timeSpan.TotalMilliseconds;
+
+                labelHandleTime.Text = handleTime.ToString() + "ms";
+
                 HandleResult(resultList);
                 label4.Text = (i + 1).ToString() + "/" + len;
                 progressBar1.Value = i + 1;
@@ -280,7 +317,7 @@ namespace OCR
             //全部完成后提示
             if (currentIndex == totalIndex - 1)
             {
-                MessageBox.Show(totalIndex + "个图片识别完成");
+              //  MessageBox.Show(totalIndex + "个图片识别完成");
                 button1.Enabled = true;
                 button2.Enabled = true;
                 button3.Enabled = true;
@@ -464,7 +501,7 @@ namespace OCR
             FolderBrowserDialog fbd = new FolderBrowserDialog();
             if (fbd.ShowDialog() != DialogResult.OK) return;
             string path = fbd.SelectedPath;
-            textBox2.Text = path;
+            //textBox2.Text = path;
         }
 
        
@@ -481,6 +518,24 @@ namespace OCR
 
             ImgShowDialog imgShow = new ImgShowDialog(selectedPath);
             imgShow.Show();
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+       
+
+        private void 菜单ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void 激活软件ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            authDialog authDialog = new authDialog();
+            authDialog.Show();
         }
     }
 }

@@ -12,6 +12,7 @@
   <ItemGroup>
     <PackageReference Include="MiniExcel" Version="1.26.5" />
     <PackageReference Include="PaddleOCRSharp" Version="2.0.3" />
+    <PackageReference Include="Win32Net" Version="1.2.0" />
   </ItemGroup>
 
 </Project>
