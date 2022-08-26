@@ -33,6 +33,8 @@ namespace OCR
 
         private List<resultEntry> resultEntries = new List<resultEntry>();
 
+        private int currentIndex = 0;
+
         /// <summary>
         /// 选中的图片路径
         /// </summary>
@@ -55,6 +57,9 @@ namespace OCR
             _result = new OCRResult();
 
             _engine = new PaddleOCREngine(_modelConfig, _parameter);
+
+            //listView2.Columns.Add("状态",100,HorizontalAlignment.Left);
+            //listView2.Columns.Add("路径",300,HorizontalAlignment.Left);
 
 
         }
@@ -103,17 +108,17 @@ namespace OCR
         /// </summary>
         public void handleImgBatch()
         {
-            int len = listBox1.Items.Count;
-
+            int len = listView2.Items.Count;
             for (int i = 0; i < len; i++)
             {
-                List<string> resultList = HandleImg((string)listBox1.Items[i]);
+                currentIndex = i;
+
+                List<string> resultList = HandleImg(listView2.Items[i].SubItems[1].Text);
                 HandleResult(resultList);
                 label4.Text = (i + 1).ToString() + "/" + len;
                 progressBar1.Value = i + 1;
-
-
             }
+
         }
 
         /// <summary>
@@ -231,6 +236,8 @@ namespace OCR
             else
             {
                 MessageBox.Show("截图不完整");
+                listView2.Items[currentIndex].ImageIndex = 2;
+                
             }
 
             // return entry;
@@ -251,12 +258,17 @@ namespace OCR
 
             if (result.Count != 12)
             {
+                listView2.Items[currentIndex].ImageIndex = 2;
+
                 return;
+                
             }
 
             for (int i = 0; i < result.Count; i++)
             {
                 dataGridView1.Rows[indexs].Cells[i].Value = result[i];
+                listView2.Items[currentIndex].ImageIndex = 1;
+
             }
 
 
@@ -279,19 +291,32 @@ namespace OCR
             // GetFileNameListFromFolder(path);
 
             DirectoryInfo dir = new DirectoryInfo(path);
-            FileInfo[] files = dir.GetFiles("*", System.IO.SearchOption.AllDirectories);
+            FileInfo[] files = dir.GetFiles("*", SearchOption.AllDirectories);
 
-            listBox1.Items.Clear();
+           
+
+            listView2.Clear();
+            listView2.Columns.Add("状态", 100, HorizontalAlignment.Left);
+            listView2.Columns.Add("路径",750,HorizontalAlignment.Left);
+
+
+            listView2.BeginUpdate();
 
             foreach (FileInfo file in files)
             {
                 if (Regex.IsMatch(file.Name, @"^.+\.(jpg|png|bmp|jpeg|tiff)$"))
                 {
-                    listBox1.Items.Add(file.FullName);
+                    ListViewItem viewItem = new ListViewItem();
 
+                    viewItem.ImageIndex = 0;
+
+                    viewItem.Text = "待处理";
+                    viewItem.SubItems.Add(file.FullName);
+                    listView2.Items.Add(viewItem);
                 }
 
             }
+            listView2.EndUpdate();
 
 
         }
@@ -305,7 +330,7 @@ namespace OCR
 
             List<string> fileNameList = new List<string>();
             DirectoryInfo dir = new DirectoryInfo(folderPath);
-            FileInfo[] files = dir.GetFiles("", System.IO.SearchOption.AllDirectories);
+            FileInfo[] files = dir.GetFiles("", SearchOption.AllDirectories);
             foreach (FileInfo file in files)
             {
                 fileNameList.Add(file.FullName);
@@ -326,11 +351,10 @@ namespace OCR
         private void button3_Click(object sender, EventArgs e)
         {
 
-            int len = listBox1.Items.Count;
+            int len = listView2.Items.Count;
             progressBar1.Minimum = 0;
             progressBar1.Maximum = len;
 
-            //Thread t = new Thread(new ThreadStart(handleImgBatch));
 
             drawThread = new Thread(new ThreadStart(handleImgBatch));
 
@@ -352,7 +376,7 @@ namespace OCR
         private void button4_Click(object sender, EventArgs e)
         {
 
-            string path = System.Environment.CurrentDirectory + "/template.xlsx";
+            string path = Environment.CurrentDirectory + "/template.xlsx";
 
             List<resultEntry> resultEntries = new List<resultEntry>();
 
@@ -374,22 +398,6 @@ namespace OCR
                 result.checkResult3 = Convert.ToString( dataGridView1.Rows[i].Cells[11].Value);
                 resultEntries.Add(result);
             }
-
-
-
-
-
-            //for (int i = 0; i < 10; i++)
-            //{
-            //    resultEntry result = new resultEntry();
-
-            //    result.name = i.ToString();
-            //    result.value = "xdddd";
-            //    resultEntries.Add(result);
-
-            //}
-
-
 
 
 
@@ -444,15 +452,20 @@ namespace OCR
             textBox2.Text = path;
         }
 
-        private void listBox1_MouseClick(object sender, MouseEventArgs e)
+       
+
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            selectedPath = listBox1.SelectedItem.ToString();
+
+        }
+
+        private void listView2_MouseClick(object sender, MouseEventArgs e)
+        {
+            selectedPath = listView2.SelectedItems[0].SubItems[1].Text;
+           // MessageBox.Show(selectedPath);
 
             ImgShowDialog imgShow = new ImgShowDialog(selectedPath);
             imgShow.Show();
-
-
-            //MessageBox.Show(selectedPath);
         }
     }
 }

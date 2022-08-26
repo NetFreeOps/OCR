@@ -28,6 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
+            System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem(new string[] {
+            "",
+            ""}, -1);
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.button1 = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
@@ -48,12 +53,15 @@
             this.label2 = new System.Windows.Forms.Label();
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.button3 = new System.Windows.Forms.Button();
-            this.listBox1 = new System.Windows.Forms.ListBox();
             this.label3 = new System.Windows.Forms.Label();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.label4 = new System.Windows.Forms.Label();
             this.button4 = new System.Windows.Forms.Button();
             this.button5 = new System.Windows.Forms.Button();
+            this.listView2 = new System.Windows.Forms.ListView();
+            this.columnHeader3 = new System.Windows.Forms.ColumnHeader();
+            this.columnHeader4 = new System.Windows.Forms.ColumnHeader();
+            this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -229,16 +237,6 @@
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
-            // listBox1
-            // 
-            this.listBox1.FormattingEnabled = true;
-            this.listBox1.ItemHeight = 17;
-            this.listBox1.Location = new System.Drawing.Point(0, 2);
-            this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(851, 242);
-            this.listBox1.TabIndex = 9;
-            this.listBox1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.listBox1_MouseClick);
-            // 
             // label3
             // 
             this.label3.AutoSize = true;
@@ -283,17 +281,52 @@
             this.button5.UseVisualStyleBackColor = true;
             this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
+            // listView2
+            // 
+            this.listView2.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnHeader3,
+            this.columnHeader4});
+            this.listView2.GridLines = true;
+            this.listView2.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
+            listViewItem1});
+            this.listView2.Location = new System.Drawing.Point(0, 2);
+            this.listView2.Name = "listView2";
+            this.listView2.Size = new System.Drawing.Size(922, 242);
+            this.listView2.SmallImageList = this.imageList1;
+            this.listView2.TabIndex = 15;
+            this.listView2.UseCompatibleStateImageBehavior = false;
+            this.listView2.View = System.Windows.Forms.View.Details;
+            this.listView2.MouseClick += new System.Windows.Forms.MouseEventHandler(this.listView2_MouseClick);
+            // 
+            // columnHeader3
+            // 
+            this.columnHeader3.Text = "状态";
+            // 
+            // columnHeader4
+            // 
+            this.columnHeader4.Text = "路径";
+            this.columnHeader4.Width = 400;
+            // 
+            // imageList1
+            // 
+            this.imageList1.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
+            this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
+            this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
+            this.imageList1.Images.SetKeyName(0, "待处理.png");
+            this.imageList1.Images.SetKeyName(1, "已处理-线性.png");
+            this.imageList1.Images.SetKeyName(2, "错误.png");
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1784, 682);
+            this.Controls.Add(this.listView2);
             this.Controls.Add(this.button5);
             this.Controls.Add(this.button4);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.label3);
-            this.Controls.Add(this.listBox1);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.textBox2);
@@ -322,7 +355,6 @@
         private Label label2;
         private TextBox textBox2;
         private Button button3;
-        private ListBox listBox1;
         private Label label3;
         private ProgressBar progressBar1;
         private Label label4;
@@ -340,5 +372,12 @@
         private DataGridViewTextBoxColumn Column12;
         private Button button4;
         private Button button5;
+        private ListView listView1;
+        private ColumnHeader columnHeader1;
+        private ColumnHeader columnHeader2;
+        private ListView listView2;
+        private ColumnHeader columnHeader3;
+        private ColumnHeader columnHeader4;
+        private ImageList imageList1;
     }
 }
