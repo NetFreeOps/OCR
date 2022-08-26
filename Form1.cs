@@ -15,7 +15,7 @@ namespace OCR
             InitializeComponent();
 
             Control.CheckForIllegalCrossThreadCalls = false;
-
+            this.DoubleBuffered = true;
 
 
         }
@@ -34,6 +34,8 @@ namespace OCR
         private List<resultEntry> resultEntries = new List<resultEntry>();
 
         private int currentIndex = 0;
+
+        private int totalIndex = 0;
 
         /// <summary>
         /// 选中的图片路径
@@ -74,9 +76,6 @@ namespace OCR
             ofd.Filter = "*.*|*.bmp;*.jpg;*.jpeg;*.tiff;*.tiff;*.png";
             if (ofd.ShowDialog() != DialogResult.OK) return;
 
-
-
-
             resultEntry entry = new resultEntry();
 
             List<string> resultList = HandleImg(ofd.FileName,0);
@@ -109,6 +108,7 @@ namespace OCR
         public void handleImgBatch()
         {
             int len = listView2.Items.Count;
+            totalIndex = len;
             for (int i = 0; i < len; i++)
             {
                 currentIndex = i;
@@ -271,10 +271,21 @@ namespace OCR
 
             }
 
+           
 
             foreach (DataGridViewColumn item in dataGridView1.Columns)
             {
                 item.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            }
+            //全部完成后提示
+            if (currentIndex == totalIndex - 1)
+            {
+                MessageBox.Show(totalIndex + "个图片识别完成");
+                button1.Enabled = true;
+                button2.Enabled = true;
+                button3.Enabled = true;
+                button4.Enabled = true;
+                button5.Enabled = true;
             }
         }
         /// <summary>
@@ -350,10 +361,14 @@ namespace OCR
         /// <param name="e"></param>
         private void button3_Click(object sender, EventArgs e)
         {
-
             int len = listView2.Items.Count;
             progressBar1.Minimum = 0;
             progressBar1.Maximum = len;
+            button1.Enabled = false;
+            button2.Enabled = false;
+            button3.Enabled = false;
+            button4.Enabled = false;
+            button5.Enabled = false;
 
 
             drawThread = new Thread(new ThreadStart(handleImgBatch));
